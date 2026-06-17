@@ -1,17 +1,15 @@
 # gpt-subagents-subscription
 
-An **unofficial** MCP server that exposes GPT "subagent" tools backed by your **ChatGPT subscription**
-(via "Sign in with ChatGPT" OAuth) instead of a pay-per-use API key. Sibling to
-[`gpt-subagents-api`](https://github.com/Wally-Ahmed/gpt-subagents-api) (which uses the official API key), and
+An MCP server that exposes GPT "subagent" tools backed by your **ChatGPT subscription** — using
+OpenAI's **"Sign in with ChatGPT"** OAuth instead of a pay-per-use API key. Sibling to
+[`gpt-subagents-api`](https://github.com/Wally-Ahmed/gpt-subagents-api) (which uses an API key), and
 it ships the same **orchestration patterns** system.
 
-> ## ⚠️ Read this first
-> This project talks to **undocumented** OpenAI endpoints (`auth.openai.com` + `chatgpt.com/backend-api/codex`)
-> — the same ones Codex CLI's "Sign in with ChatGPT" uses — and reuses Codex's public OAuth `client_id`.
-> - **Not affiliated with or endorsed by OpenAI.**
-> - It **may violate OpenAI's Terms of Service** and could get your account **rate-limited or banned**.
-> - The endpoints are unpublished and **can change or break at any time**.
-> - **Use entirely at your own risk.** The official, stable path is an API key — see `gpt-subagents-api`.
+> **Note:** Authenticates via OpenAI's **"Sign in with ChatGPT"** OAuth — the mechanism OpenAI
+> introduced (through Codex CLI) for bringing your ChatGPT subscription to a third-party tool — and
+> calls the ChatGPT backend with the resulting token. Not affiliated with or endorsed by OpenAI. These
+> backend endpoints aren't versioned and can change; if a call starts failing, the stable alternative
+> is the API-key sibling [`gpt-subagents-api`](https://github.com/Wally-Ahmed/gpt-subagents-api).
 
 ---
 
@@ -22,9 +20,6 @@ it ships the same **orchestration patterns** system.
 | `ask_gpt` | Ask a GPT model via your ChatGPT subscription. **You pick `model` and write `instructions` (the system prompt) every call — both required, no defaults.** Any valid model id is accepted; known suggestions: `gpt-5.4` (general), `gpt-5.4-mini` (faster/cheaper), `gpt-5.5` (deepest reasoning). Optional `reasoning_effort` (low/medium/high). |
 | `check_usage` | Remaining ChatGPT/Codex subscription quota |
 | `list_patterns` / `get_pattern` | Orchestration patterns for driving the model well (see below) |
-
-> ⚠️ These models can be **confidently wrong**. Treat output as a *hypothesis* and verify against real
-> files, docs, and tests — the orchestration patterns exist largely to make that automatic.
 
 ---
 
@@ -86,9 +81,9 @@ claude mcp add gpt-subagents-subscription -- node /absolute/path/to/gpt-subagent
 
 ## Credits / prior art
 
-Reverse-engineering of the ChatGPT subscription flow is documented by the community, e.g.
+The "Sign in with ChatGPT" subscription flow has been documented by the community, e.g.
 [EvanZhouDev/openai-oauth](https://github.com/EvanZhouDev/openai-oauth) and various write-ups.
 
 ## License
 
-ISC
+MIT

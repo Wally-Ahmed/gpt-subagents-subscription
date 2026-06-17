@@ -107,7 +107,7 @@
     <div class="row">
       <div class="node gpt single">
         <h3><span class="dot"></span>Expert model</h3>
-        <p>The specialist — ideally a <b>different model family</b> from the one orchestrating/building. Does the deep reasoning, but its output is treated as <b>hypotheses</b> (it can be confidently wrong).</p>
+        <p>The specialist — ideally a <b>different model family</b> from the one orchestrating/building. Does the deep reasoning, and its output is treated as <b>hypotheses</b> to verify.</p>
       </div>
     </div>
 
@@ -153,7 +153,7 @@
       <td>Subagents run <b>truly concurrently</b> in bounded waves. <span class="tag t-ok">fast</span></td>
     </tr>
     <tr>
-      <td><b>Hallucination / wrong output</b></td>
+      <td><b>Unverified claims</b></td>
       <td class="naive">Expert output is consumed as-is → false claims get acted on, wasting effort or adding errors.</td>
       <td>Subagent <b>verifies each claim against ground truth</b> before it surfaces. <span class="tag t-crit">safety</span></td>
     </tr>

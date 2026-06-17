@@ -19,6 +19,7 @@ non-trivial expert work (reviews, audits, threat modeling, large-document analys
 | name | summary |
 |------|---------|
 | `two-layer-cross-model-expert` | Wrap the GPT expert in verifying Claude subagents so the orchestrator only ever sees parallel, context-cheap, ground-truth-checked conclusions. |
+| `worker-orchestrator` | Fan concrete implementation work out to the GPT worker (`ask_gpt` with a fast model) through cheap Sonnet wrapper subagents — validated by execution, not a verification gate. |
 
 ## Adding a pattern
 

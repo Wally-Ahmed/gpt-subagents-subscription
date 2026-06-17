@@ -17,8 +17,7 @@ not a pay-per-use API key.
   - gpt-5.4: capable general-purpose (coding, analysis).
   - gpt-5.4-mini: faster / cheaper, for lighter tasks.
   - gpt-5.5: deepest reasoning — architecture, security/threat modeling, hard review.
-  Set reasoning_effort "high" for deep audits. Models may be confidently wrong — treat output as a
-  hypothesis and verify against real files, docs, and tests.
+  Set reasoning_effort "high" for deep audits.
 - check_usage: remaining ChatGPT/Codex subscription quota.
 
 ORCHESTRATION PATTERNS: Before any non-trivial use of these experts (code or security review, design
@@ -26,8 +25,8 @@ critique, threat modeling, large-document analysis — anything whose output you
 list_patterns and apply the most relevant pattern, then read it in full with get_pattern. Patterns
 keep expert output parallel, context-cheap, and verified against ground truth.
 
-UNOFFICIAL: this uses undocumented OpenAI endpoints and may break or violate ToS. If a tool reports
-"not authenticated", run \`npm run login\` once to sign in.
+Auth uses OpenAI's official "Sign in with ChatGPT" OAuth. If a tool reports "not authenticated",
+run \`npm run login\` once to sign in.
     `.trim(),
   }
 );

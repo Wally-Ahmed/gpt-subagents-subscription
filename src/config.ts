@@ -15,7 +15,7 @@ export const EXTRA_AUTHORIZE_PARAMS: Record<string, string> = {
   codex_cli_simplified_flow: "true",
 };
 
-// --- Backend (undocumented ChatGPT subscription API) --------------------
+// --- Backend (ChatGPT subscription API, via Sign in with ChatGPT) -------
 export const BACKEND_RESPONSES_URL = "https://chatgpt.com/backend-api/codex/responses";
 export const BACKEND_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 // Header Codex attaches so the backend accepts the request. [VERIFY-LIVE]

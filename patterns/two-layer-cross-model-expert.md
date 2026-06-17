@@ -57,8 +57,8 @@ safe to trust**.
 
 The **cross-model** part matters: the orchestrator and wrappers are Claude; the expert is GPT. Two
 different model families means **different blind spots** — which is the entire value of a second
-opinion. `ask_gpt` output (especially gpt-5.5) can be confidently wrong; this pattern's
-verification gate is how you actually act on that warning instead of just reading it.
+opinion. Treat the expert's output as hypotheses to check, not facts to adopt; this pattern's
+verification gate is how you keep only ground-truth-checked conclusions.
 
 ---
 
@@ -68,7 +68,7 @@ verification gate is how you actually act on that warning instead of just readin
 |---|---|---|
 | **Context bloat** | Every input the expert needs gets read into your *main* context → it fills up, summarization/compaction kicks in, you lose working state | Bundle assembly happens **inside each subagent's** context; your main loop only ever sees the compact final result |
 | **Parallelism** | Calls from the main loop are effectively serial | Subagents run **truly concurrently** (in bounded waves) |
-| **Hallucination / wrong output** | Expert output is consumed as-is → false claims get acted on, wasting effort or introducing errors | Subagent **verifies each claim against ground truth** (`VERIFIED` / `FALSE` / `UNCERTAIN`) before it surfaces |
+| **Unverified claims** | Expert output is consumed as-is → unchecked claims get acted on, wasting effort or introducing errors | Subagent **verifies each claim against ground truth** (`VERIFIED` / `FALSE` / `UNCERTAIN`) before it surfaces |
 | **Shared blind spots** | If the expert is the same model doing the work, it shares your failure modes | A **different model family** as the expert surfaces issues a self-pass would miss |
 | **Durability** | Results live only in the conversation → lost on compaction/restart | Each result is written to a durable artifact as it returns |
 
