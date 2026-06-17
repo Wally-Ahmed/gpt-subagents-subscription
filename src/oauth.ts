@@ -11,6 +11,10 @@ import {
 } from "./config.js";
 import type { StoredTokens } from "./config.js";
 
+// How long to wait for the browser to redirect back with the auth code before
+// giving up and tearing down the loopback callback server.
+const LOGIN_CALLBACK_TIMEOUT_MS = 5 * 60_000;
+
 export function generatePkce(): { verifier: string; challenge: string } {
   const verifier = crypto.randomBytes(32).toString("base64url");
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
@@ -46,9 +50,40 @@ function decodeJwtPayload(jwt: string): Record<string, any> {
   return JSON.parse(Buffer.from(part, "base64url").toString("utf8"));
 }
 
+// Lightweight, defense-in-depth claim checks on the id_token. The token arrives
+// directly from auth.openai.com over TLS (not via the browser redirect), so we
+// do NOT do full JWKS signature verification here — that is intentionally
+// deferred. We only assert the issuer is an OpenAI host and the token has not
+// already expired, to reject an obviously wrong/stale token early.
+function validateIdTokenClaims(payload: Record<string, any>): void {
+  const iss = payload.iss;
+  if (typeof iss !== "string") {
+    throw new Error("id_token missing issuer (iss)");
+  }
+  let host: string;
+  try {
+    host = new URL(iss).hostname;
+  } catch {
+    throw new Error("id_token issuer (iss) is not a valid URL");
+  }
+  if (host !== "openai.com" && !host.endsWith(".openai.com")) {
+    throw new Error(`id_token issuer is not an openai.com host: ${host}`);
+  }
+  const exp = payload.exp;
+  if (typeof exp !== "number" || !Number.isFinite(exp)) {
+    throw new Error("id_token missing or invalid expiry (exp)");
+  }
+  if (exp * 1000 <= Date.now()) {
+    throw new Error("id_token has already expired");
+  }
+  // NOTE: signature verification against OpenAI's JWKS is deliberately not
+  // performed here (no JWKS/crypto dependency); see comment above.
+}
+
 // The exact claim path is reverse-engineered; we check the known locations. [VERIFY-LIVE]
 export function parseAccountId(idToken: string): string {
   const p = decodeJwtPayload(idToken);
+  validateIdTokenClaims(p);
   const id =
     p["https://api.openai.com/auth"]?.chatgpt_account_id ??
     p.chatgpt_account_id ??
@@ -77,7 +112,19 @@ export async function exchangeCode(opts: {
     }),
   });
   if (!res.ok) {
-    throw new Error(`Token exchange failed: ${res.status} ${await res.text()}`);
+    // Don't echo the raw OAuth error body (it can carry sensitive diagnostics);
+    // surface only the status and a short, parsed error_description if present.
+    let detail = "";
+    try {
+      const body = (await res.json()) as { error_description?: unknown; error?: unknown };
+      const desc = body.error_description ?? body.error;
+      if (typeof desc === "string" && desc.length > 0) {
+        detail = `: ${desc.slice(0, 200)}`;
+      }
+    } catch {
+      /* non-JSON body — omit it entirely */
+    }
+    throw new Error(`Token exchange failed (${res.status})${detail}`);
   }
   return (await res.json()) as TokenResponse;
 }
@@ -88,35 +135,73 @@ export async function runLoginFlow(): Promise<StoredTokens> {
   const authorizeUrl = buildAuthorizeUrl({ challenge, state });
 
   const code = await new Promise<string>((resolve, reject) => {
+    let done = false;
+    let timer: NodeJS.Timeout | undefined;
+
+    // Single, idempotent settlement path: close the server and clear the
+    // timeout exactly once, so a stray request, a late `error` event, or the
+    // timeout can't double-settle or close twice.
+    const finish = (err: Error | null, value?: string) => {
+      if (done) return;
+      done = true;
+      if (timer) clearTimeout(timer);
+      server.close();
+      if (err) reject(err);
+      else resolve(value as string);
+    };
+
     const server = http.createServer((req, res) => {
-      const url = new URL(req.url || "", `http://localhost:${REDIRECT_PORT}`);
+      const url = new URL(req.url || "", `http://127.0.0.1:${REDIRECT_PORT}`);
       if (url.pathname !== "/auth/callback") {
         res.writeHead(404).end();
         return;
       }
       const returnedState = url.searchParams.get("state");
       const returnedCode = url.searchParams.get("code");
-      res.writeHead(200, { "Content-Type": "text/html" });
-      if (returnedState !== state || !returnedCode) {
+      // Wrong/absent state => stray hit (stale tab, probe, double-fire). Reject
+      // THIS request with 400 but keep listening for the real callback.
+      if (returnedState !== state) {
+        res.writeHead(400, { "Content-Type": "text/html" });
         res.end(
-          "<h1>Login failed</h1><p>State mismatch or missing code. You can close this tab.</p>"
+          "<h1>Ignored</h1><p>State mismatch — this is not the expected sign-in callback.</p>"
         );
-        server.close();
-        reject(new Error("OAuth state mismatch or missing code"));
         return;
       }
+      // State matched: this is the real callback. A missing code is a terminal
+      // OAuth failure (e.g. the provider returned ?error=...).
+      if (!returnedCode) {
+        res.writeHead(400, { "Content-Type": "text/html" });
+        res.end(
+          "<h1>Login failed</h1><p>No authorization code was returned. You can close this tab.</p>"
+        );
+        const oauthError = url.searchParams.get("error");
+        finish(
+          new Error(
+            oauthError
+              ? `OAuth callback returned an error: ${oauthError}`
+              : "OAuth callback missing authorization code"
+          )
+        );
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/html" });
       res.end(
         "<h1>Logged in</h1><p>You can close this tab and return to the terminal.</p>"
       );
-      server.close();
-      resolve(returnedCode);
+      finish(null, returnedCode);
     });
-    server.on("error", reject);
-    server.listen(REDIRECT_PORT, () => {
+    server.on("error", (err) => finish(err));
+    // Bind to loopback only so the callback server is never reachable from the
+    // LAN (a host-less listen binds all interfaces).
+    server.listen(REDIRECT_PORT, "127.0.0.1", () => {
       console.error(
-        `\nTo sign in, open this URL in a browser where you're already signed in to ChatGPT:\n\n${authorizeUrl}\n\nWaiting for the sign-in callback on http://localhost:${REDIRECT_PORT} ...\n`
+        `\nTo sign in, open this URL in a browser where you're already signed in to ChatGPT:\n\n${authorizeUrl}\n\nWaiting for the sign-in callback on http://127.0.0.1:${REDIRECT_PORT} ...\n`
       );
     });
+    // Don't hang forever if the user never completes sign-in.
+    timer = setTimeout(() => {
+      finish(new Error("Timed out waiting for the OAuth callback (5 minutes)."));
+    }, LOGIN_CALLBACK_TIMEOUT_MS);
   });
 
   const tok = await exchangeCode({ code, verifier });

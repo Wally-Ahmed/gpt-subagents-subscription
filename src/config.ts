@@ -27,7 +27,11 @@ export const BACKEND_ORIGINATOR = "codex_cli_rs";
 export const SUPPORTED_MODELS = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5"] as const;
 
 // --- Token storage ------------------------------------------------------
-// Override dir with GSS_TOKEN_DIR (used by tests).
+// GSS_TOKEN_DIR is a test/advanced override for the token directory. The test
+// suite sets it to a temp dir; normal use leaves it unset and falls back to the
+// per-user home directory. saveTokens hardens whatever directory this resolves
+// to (0700, reject symlink/non-dir), so an attacker-controlled override cannot
+// silently widen permissions.
 export const TOKEN_DIR =
   process.env.GSS_TOKEN_DIR || join(homedir(), ".gpt-subagents-subscription");
 export const TOKEN_FILE = join(TOKEN_DIR, "auth.json");
