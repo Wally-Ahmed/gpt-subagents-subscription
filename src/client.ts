@@ -8,9 +8,9 @@ import { getValidAuth } from "./tokens.js";
 
 export type RespondParams = {
   model: string;
+  instructions: string;
   input: string;
   reasoningEffort?: "low" | "medium" | "high";
-  instructions?: string;
 };
 
 type HttpRequest = { url: string; headers: Record<string, string>; body: string };
@@ -25,13 +25,15 @@ function authHeaders(auth: Auth): Record<string, string> {
 }
 
 export function buildResponsesRequest(auth: Auth, params: RespondParams): HttpRequest {
+  // The Codex backend requires a non-empty `instructions` (system) field; the
+  // caller must supply it (no default — the ask_gpt tool makes it required).
   const body: Record<string, unknown> = {
     model: params.model,
+    instructions: params.instructions,
     input: [{ role: "user", content: [{ type: "input_text", text: params.input }] }],
     stream: true,
     store: false,
   };
-  if (params.instructions) body.instructions = params.instructions;
   if (params.reasoningEffort) body.reasoning = { effort: params.reasoningEffort };
   return {
     url: BACKEND_RESPONSES_URL,

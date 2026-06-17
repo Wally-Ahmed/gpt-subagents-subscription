@@ -10,7 +10,7 @@ use_when: Code or security review, design critique, threat modeling, research cr
 > **What this documents:** a general, reusable way to put an **external "expert" model (reached over
 > MCP) to work inside an agent loop** — by wrapping it in orchestrating subagents. The pattern keeps
 > the expert's output **parallel, context-cheap, and trustworthy**. In this project the expert is
-> reached through `ask_gpt_architect` (GPT-5.5) or `ask_gpt_codex` (GPT-5.3-Codex); the pattern
+> reached through the `ask_gpt` tool (e.g. `model: gpt-5.5` for deep reasoning, `gpt-5.4` for routine work); the pattern
 > applies to any second-opinion model or any MCP tool whose output is high-value but not
 > automatically safe to act on (code review, threat modeling, design critique, research synthesis,
 > large-doc analysis, etc.).
@@ -53,11 +53,11 @@ safe to trust**.
 |---|---|
 | **Layer 0 — Orchestrator** | Your main Claude Code session — the one reading this pattern. |
 | **Layer 1 — Wrapper subagent** | A Claude subagent (e.g. dispatched via the `Task` tool) per work unit: it gathers the bundle, calls the expert tool, verifies, and reports back compactly. |
-| **Layer 2 — Expert (over MCP)** | `ask_gpt_architect` (GPT-5.5, high reasoning) for audits/critique/threat-modeling, or `ask_gpt_codex` (GPT-5.3-Codex) for concrete code work. |
+| **Layer 2 — Expert (over MCP)** | The `ask_gpt` tool — `model: gpt-5.5` (with `reasoning_effort: high`) for audits/critique/threat-modeling, or `gpt-5.4` / `gpt-5.4-mini` for concrete or lighter work. |
 
 The **cross-model** part matters: the orchestrator and wrappers are Claude; the expert is GPT. Two
 different model families means **different blind spots** — which is the entire value of a second
-opinion. `ask_gpt_architect` already warns that GPT-5.5 may be confidently wrong; this pattern's
+opinion. `ask_gpt` output (especially gpt-5.5) can be confidently wrong; this pattern's
 verification gate is how you actually act on that warning instead of just reading it.
 
 ---
@@ -142,7 +142,7 @@ flowchart TD
 - **Pick an expert from a different model family** than the one building/orchestrating — diverse
   blind spots are the whole point of a second opinion. (Here: Claude orchestrates, GPT is the expert.)
 - **Use high reasoning effort for the expert** when the task is a deep audit/critique, not a quick
-  lookup. `ask_gpt_architect` already runs GPT-5.5 at high reasoning effort.
+  lookup. With `ask_gpt`, set `reasoning_effort: high` on `gpt-5.5` for deep audits.
 - **Never skip the verification gate.** A confident wrong answer that gets acted on is worse than no
   answer. The wrapper's job is to make sure only ground-truth-checked conclusions reach the main loop.
 

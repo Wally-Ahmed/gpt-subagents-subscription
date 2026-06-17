@@ -1,7 +1,7 @@
 # Orchestration Patterns
 
 Reusable playbooks that tell the calling agent **how** to drive the GPT subagent
-tools (`ask_gpt_codex`, `ask_gpt_architect`) well — not just *that* they exist.
+tool (`ask_gpt`) well — not just *that* it exists.
 
 Each pattern is a single Markdown file in this folder. The MCP server reads them
 **at call time**, so adding or editing a pattern needs no rebuild or restart.

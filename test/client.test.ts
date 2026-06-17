@@ -9,17 +9,19 @@ const auth = { accessToken: "AT", accountId: "acct_1" };
 
 describe("buildResponsesRequest", () => {
   it("sets auth headers and a Responses-API body", () => {
-    const req = buildResponsesRequest(auth, { model: "gpt-5.3-codex", input: "hello" });
+    const req = buildResponsesRequest(auth, { model: "gpt-5.3-codex", instructions: "Be a terse assistant.", input: "hello" });
     expect(req.url).toContain("/backend-api/codex/responses");
     expect(req.headers["Authorization"]).toBe("Bearer AT");
     expect(req.headers["ChatGPT-Account-Id"]).toBe("acct_1");
     const body = JSON.parse(req.body);
     expect(body.model).toBe("gpt-5.3-codex");
     expect(JSON.stringify(body.input)).toContain("hello");
+    expect(body.instructions).toBe("Be a terse assistant.");
   });
   it("includes reasoning effort when provided", () => {
     const req = buildResponsesRequest(auth, {
       model: "gpt-5.4",
+      instructions: "sys",
       input: "x",
       reasoningEffort: "high",
     });

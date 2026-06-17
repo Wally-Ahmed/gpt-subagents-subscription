@@ -4,7 +4,7 @@ import { z } from "zod";
 import { respond, getUsage } from "./client.js";
 import { NotAuthenticatedError } from "./tokens.js";
 import { listPatterns, getPattern, patternNames } from "./patterns.js";
-import { DEFAULT_CODEX_MODEL, DEFAULT_ARCHITECT_MODEL } from "./config.js";
+import { SUPPORTED_MODELS } from "./config.js";
 
 const server = new McpServer(
   { name: "gpt-subagents-subscription", version: "1.0.0" },
@@ -13,9 +13,11 @@ const server = new McpServer(
 Delegate to GPT "expert" models powered by your ChatGPT subscription (via Sign in with ChatGPT),
 not a pay-per-use API key.
 
-- ask_gpt_codex (${DEFAULT_CODEX_MODEL}): routine coding — patches, debugging, tests, repo inspection.
-- ask_gpt_architect (${DEFAULT_ARCHITECT_MODEL}, high reasoning): architecture, security/threat
-  modeling, review of large/high-risk changes. May be confidently wrong — treat output as a
+- ask_gpt: ask a GPT model. You MUST choose \`model\` and write \`instructions\` (its system prompt) explicitly every call — there are no defaults:
+  - gpt-5.4: capable general-purpose (coding, analysis).
+  - gpt-5.4-mini: faster / cheaper, for lighter tasks.
+  - gpt-5.5: deepest reasoning — architecture, security/threat modeling, hard review.
+  Set reasoning_effort "high" for deep audits. Models may be confidently wrong — treat output as a
   hypothesis and verify against real files, docs, and tests.
 - check_usage: remaining ChatGPT/Codex subscription quota.
 
@@ -36,46 +38,33 @@ function errorText(err: unknown): string {
 }
 
 server.tool(
-  "ask_gpt_codex",
-  `Ask ${DEFAULT_CODEX_MODEL} (via your ChatGPT subscription) to handle a coding task: patches, debugging, tests, repo inspection.`,
+  "ask_gpt",
+  "Ask a GPT model via your ChatGPT subscription. You must choose `model` explicitly AND write `instructions` (the model's system prompt) yourself — there are no defaults. Use gpt-5.4 for general work, gpt-5.4-mini for faster/cheaper light tasks, and gpt-5.5 (with reasoning_effort 'high') for architecture, security/threat modeling, and hard review. Treat output as a hypothesis to verify.",
   {
-    task: z.string().describe("The coding task to perform"),
+    model: z
+      .enum(SUPPORTED_MODELS)
+      .describe(
+        "Which model to use (required, no default): gpt-5.4 (general), gpt-5.4-mini (faster/cheaper), gpt-5.5 (deepest reasoning)"
+      ),
+    instructions: z
+      .string()
+      .describe(
+        "System instructions for the model (required, no default): its role, persona, and how to respond. Write these explicitly for the task at hand."
+      ),
+    prompt: z.string().describe("The task or question for the model"),
+    reasoning_effort: z
+      .enum(["low", "medium", "high"])
+      .optional()
+      .describe("Reasoning effort (higher = deeper but slower). Best with gpt-5.5 for hard tasks."),
     context: z
       .string()
       .optional()
-      .describe("Code, errors, stack traces, or other relevant context"),
+      .describe("Code, errors, constraints, or other relevant context"),
   },
-  async ({ task, context }) => {
+  async ({ model, instructions, prompt, reasoning_effort, context }) => {
     try {
-      const input = context ? `Task:\n${task}\n\nContext:\n${context}` : `Task:\n${task}`;
-      const text = await respond({ model: DEFAULT_CODEX_MODEL, input });
-      return { content: [{ type: "text" as const, text }] };
-    } catch (err) {
-      return { content: [{ type: "text" as const, text: errorText(err) }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  "ask_gpt_architect",
-  `Ask ${DEFAULT_ARCHITECT_MODEL} (via your ChatGPT subscription, high reasoning) for architecture, security/threat modeling, or review of high-risk changes. Treat output as a hypothesis to verify.`,
-  {
-    question: z.string().describe("The architecture, design, or reasoning question"),
-    context: z
-      .string()
-      .optional()
-      .describe("Relevant code, constraints, or prior analysis"),
-  },
-  async ({ question, context }) => {
-    try {
-      const input = context
-        ? `Question:\n${question}\n\nContext:\n${context}`
-        : `Question:\n${question}`;
-      const text = await respond({
-        model: DEFAULT_ARCHITECT_MODEL,
-        input,
-        reasoningEffort: "high",
-      });
+      const input = context ? `${prompt}\n\nContext:\n${context}` : prompt;
+      const text = await respond({ model, instructions, input, reasoningEffort: reasoning_effort });
       return { content: [{ type: "text" as const, text }] };
     } catch (err) {
       return { content: [{ type: "text" as const, text: errorText(err) }], isError: true };
@@ -123,7 +112,7 @@ server.tool(
 
 server.tool(
   "get_pattern",
-  "Return the full text of an orchestration pattern by name (see list_patterns). Use it to apply the pattern when orchestrating ask_gpt_codex / ask_gpt_architect calls.",
+  "Return the full text of an orchestration pattern by name (see list_patterns). Use it to apply the pattern when orchestrating ask_gpt calls.",
   {
     name: z
       .string()

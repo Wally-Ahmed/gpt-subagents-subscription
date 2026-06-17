@@ -17,17 +17,14 @@ it ships the same **orchestration patterns** system.
 
 ## Tools
 
-| Tool | Model (default) | Use for |
-|------|------|---------|
-| `ask_gpt_codex` | `gpt-5.3-codex` | Routine coding — patches, debugging, tests, repo inspection |
-| `ask_gpt_architect` | `gpt-5.4` (high reasoning) | Architecture, security/threat modeling, review of high-risk changes |
-| `check_usage` | — | Remaining ChatGPT/Codex subscription quota |
-| `list_patterns` / `get_pattern` | — | Orchestration patterns for driving the subagents well (see below) |
+| Tool | What it does |
+|------|--------------|
+| `ask_gpt` | Ask a GPT model via your ChatGPT subscription. **You pick `model` and write `instructions` (the system prompt) every call — both required, no defaults.** Model is `gpt-5.4` (general), `gpt-5.4-mini` (faster/cheaper), or `gpt-5.5` (deepest reasoning). Optional `reasoning_effort` (low/medium/high). |
+| `check_usage` | Remaining ChatGPT/Codex subscription quota |
+| `list_patterns` / `get_pattern` | Orchestration patterns for driving the model well (see below) |
 
-Models are overridable via `GSS_CODEX_MODEL` / `GSS_ARCHITECT_MODEL`.
-
-> ⚠️ `ask_gpt_architect` can be **confidently wrong**. Treat its output as a *hypothesis* and verify
-> against real files, docs, and tests. The orchestration patterns exist largely to make that automatic.
+> ⚠️ These models can be **confidently wrong**. Treat output as a *hypothesis* and verify against real
+> files, docs, and tests — the orchestration patterns exist largely to make that automatic.
 
 ---
 

@@ -21,9 +21,10 @@ export const BACKEND_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 // Header Codex attaches so the backend accepts the request. [VERIFY-LIVE]
 export const BACKEND_ORIGINATOR = "codex_cli_rs";
 
-// --- Models (env-overridable) -------------------------------------------
-export const DEFAULT_CODEX_MODEL = process.env.GSS_CODEX_MODEL || "gpt-5.3-codex";
-export const DEFAULT_ARCHITECT_MODEL = process.env.GSS_ARCHITECT_MODEL || "gpt-5.4";
+// --- Models -------------------------------------------------------------
+// Models a ChatGPT account can use (from the Codex model cache). There is no
+// default — the caller must choose one per request (see the ask_gpt tool).
+export const SUPPORTED_MODELS = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5"] as const;
 
 // --- Token storage ------------------------------------------------------
 // Override dir with GSS_TOKEN_DIR (used by tests).
