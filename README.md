@@ -54,7 +54,7 @@ Requires Node 18+ and an active ChatGPT subscription.
 ```bash
 npm install
 npm run build
-npm run login     # opens a browser; sign in with ChatGPT (one-time)
+npm run login     # prints a sign-in URL to open; sign in with ChatGPT (one-time)
 ```
 
 `npm run login` runs an OAuth flow on `http://localhost:1455/auth/callback` and stores tokens at

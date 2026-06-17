@@ -1,6 +1,5 @@
 import crypto from "node:crypto";
 import http from "node:http";
-import { spawn } from "node:child_process";
 import {
   OAUTH_AUTHORIZE_URL,
   OAUTH_CLIENT_ID,
@@ -83,21 +82,6 @@ export async function exchangeCode(opts: {
   return (await res.json()) as TokenResponse;
 }
 
-function openBrowser(url: string): void {
-  const cmd =
-    process.platform === "darwin"
-      ? "open"
-      : process.platform === "win32"
-        ? "cmd"
-        : "xdg-open";
-  const args = process.platform === "win32" ? ["/c", "start", "", url] : [url];
-  try {
-    spawn(cmd, args, { stdio: "ignore", detached: true }).unref();
-  } catch {
-    /* URL is also printed for manual open */
-  }
-}
-
 export async function runLoginFlow(): Promise<StoredTokens> {
   const { verifier, challenge } = generatePkce();
   const state = crypto.randomBytes(16).toString("hex");
@@ -129,8 +113,9 @@ export async function runLoginFlow(): Promise<StoredTokens> {
     });
     server.on("error", reject);
     server.listen(REDIRECT_PORT, () => {
-      console.error(`\nOpen this URL to sign in with ChatGPT:\n${authorizeUrl}\n`);
-      openBrowser(authorizeUrl);
+      console.error(
+        `\nTo sign in, open this URL in a browser where you're already signed in to ChatGPT:\n\n${authorizeUrl}\n\nWaiting for the sign-in callback on http://localhost:${REDIRECT_PORT} ...\n`
+      );
     });
   });
 

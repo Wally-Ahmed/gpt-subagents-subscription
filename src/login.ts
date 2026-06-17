@@ -9,7 +9,7 @@ async function main() {
     console.error(`Logged out. Removed ${TOKEN_FILE}`);
     return;
   }
-  console.error("Starting ChatGPT OAuth login (a browser window will open)...");
+  console.error("Starting ChatGPT OAuth login...");
   const tokens = await runLoginFlow();
   saveTokens(tokens);
   console.error(`\n✅ Logged in. Tokens saved to ${TOKEN_FILE}`);
