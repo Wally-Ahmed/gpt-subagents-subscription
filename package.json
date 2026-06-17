@@ -1,0 +1,24 @@
+{
+  "name": "gpt-subagents-subscription",
+  "version": "1.0.0",
+  "description": "Unofficial MCP server exposing GPT subagents backed by your ChatGPT subscription via 'Sign in with ChatGPT' OAuth. Not affiliated with OpenAI; uses undocumented endpoints.",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "login": "tsx src/login.ts",
+    "start": "node dist/server.js",
+    "test": "vitest run"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.0"
+  }
+}
