@@ -24,7 +24,9 @@ export const BACKEND_ORIGINATOR = "codex_cli_rs";
 // --- Models -------------------------------------------------------------
 // Models a ChatGPT account can use (from the Codex model cache). There is no
 // default — the caller must choose one per request (see the ask_gpt tool).
-export const SUPPORTED_MODELS = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5"] as const;
+// Known/tested models — listed as suggestions only. Any valid model id is
+// accepted; callers are not restricted to this list.
+export const SUPPORTED_MODELS = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5"];
 
 // --- Token storage ------------------------------------------------------
 // GSS_TOKEN_DIR is a test/advanced override for the token directory. The test

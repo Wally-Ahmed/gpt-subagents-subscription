@@ -2,7 +2,7 @@
 
 An **unofficial** MCP server that exposes GPT "subagent" tools backed by your **ChatGPT subscription**
 (via "Sign in with ChatGPT" OAuth) instead of a pay-per-use API key. Sibling to
-[`gpt-subagents`](https://github.com/Wally-Ahmed/gpt-subagents) (which uses the official API key), and
+[`gpt-subagents-api`](https://github.com/Wally-Ahmed/gpt-subagents-api) (which uses the official API key), and
 it ships the same **orchestration patterns** system.
 
 > ## ⚠️ Read this first
@@ -11,7 +11,7 @@ it ships the same **orchestration patterns** system.
 > - **Not affiliated with or endorsed by OpenAI.**
 > - It **may violate OpenAI's Terms of Service** and could get your account **rate-limited or banned**.
 > - The endpoints are unpublished and **can change or break at any time**.
-> - **Use entirely at your own risk.** The official, stable path is an API key — see `gpt-subagents`.
+> - **Use entirely at your own risk.** The official, stable path is an API key — see `gpt-subagents-api`.
 
 ---
 
@@ -19,7 +19,7 @@ it ships the same **orchestration patterns** system.
 
 | Tool | What it does |
 |------|--------------|
-| `ask_gpt` | Ask a GPT model via your ChatGPT subscription. **You pick `model` and write `instructions` (the system prompt) every call — both required, no defaults.** Model is `gpt-5.4` (general), `gpt-5.4-mini` (faster/cheaper), or `gpt-5.5` (deepest reasoning). Optional `reasoning_effort` (low/medium/high). |
+| `ask_gpt` | Ask a GPT model via your ChatGPT subscription. **You pick `model` and write `instructions` (the system prompt) every call — both required, no defaults.** Any valid model id is accepted; known suggestions: `gpt-5.4` (general), `gpt-5.4-mini` (faster/cheaper), `gpt-5.5` (deepest reasoning). Optional `reasoning_effort` (low/medium/high). |
 | `check_usage` | Remaining ChatGPT/Codex subscription quota |
 | `list_patterns` / `get_pattern` | Orchestration patterns for driving the model well (see below) |
 

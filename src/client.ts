@@ -2,13 +2,12 @@ import {
   BACKEND_ORIGINATOR,
   BACKEND_RESPONSES_URL,
   BACKEND_USAGE_URL,
-  SUPPORTED_MODELS,
 } from "./config.js";
 import type { Auth } from "./config.js";
 import { getValidAuth } from "./tokens.js";
 
 export type RespondParams = {
-  model: (typeof SUPPORTED_MODELS)[number];
+  model: string;
   instructions: string;
   input: string;
   reasoningEffort?: "low" | "medium" | "high";
@@ -191,9 +190,6 @@ export function parseResponsesStream(raw: string): string {
 }
 
 export async function respond(params: RespondParams): Promise<string> {
-  if (!SUPPORTED_MODELS.includes(params.model)) {
-    throw new Error(`Unsupported model: ${JSON.stringify(params.model)}`);
-  }
   const auth = await getValidAuth();
   const req = buildResponsesRequest(auth, params);
   const res = await fetch(req.url, { method: "POST", headers: req.headers, body: req.body });

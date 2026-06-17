@@ -65,12 +65,17 @@ export function buildInput(prompt: string, context?: string): string {
 
 server.tool(
   "ask_gpt",
-  "Ask a GPT model via your ChatGPT subscription. You must choose `model` explicitly AND write `instructions` (the model's system prompt) yourself — there are no defaults. Use gpt-5.4 for general work, gpt-5.4-mini for faster/cheaper light tasks, and gpt-5.5 (with reasoning_effort 'high') for architecture, security/threat modeling, and hard review. Treat output as a hypothesis to verify.",
+  "Ask a GPT model via your ChatGPT subscription. You must choose `model` explicitly AND write `instructions` (the model's system prompt) yourself — there are no defaults. Any valid model id is accepted; known suggestions: gpt-5.4 (general), gpt-5.4-mini (faster/cheaper), gpt-5.5 (deepest reasoning — use with reasoning_effort 'high' for architecture, security/threat modeling, and hard review). Treat output as a hypothesis to verify.",
   {
     model: z
-      .enum(SUPPORTED_MODELS)
+      .string()
+      .trim()
+      .min(1)
+      .max(100)
       .describe(
-        "Which model to use (required, no default): gpt-5.4 (general), gpt-5.4-mini (faster/cheaper), gpt-5.5 (deepest reasoning)"
+        "Which model to use (required, no default). Any valid model id is accepted. " +
+        "Known suggestions: gpt-5.4 (capable general-purpose), gpt-5.4-mini (faster/cheaper for lighter tasks), " +
+        "gpt-5.5 (deepest reasoning — architecture, security/threat modeling, hard review)."
       ),
     instructions: z
       .string()

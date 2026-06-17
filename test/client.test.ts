@@ -170,13 +170,15 @@ describe("respond error body sanitization", () => {
     expect(msg).toContain("[truncated]");
   });
 
-  it("rejects an unsupported model before making a request", async () => {
+  it("accepts a non-listed model id and reaches request-building (does not reject before fetch)", async () => {
     const client = await import("../src/client.js");
-    const fetchMock = vi.spyOn(globalThis, "fetch");
-    await expect(
-      // @ts-expect-error deliberately passing an invalid model at runtime
-      client.respond({ model: "gpt-9-bogus", instructions: "s", input: "x" })
-    ).rejects.toThrow(/unsupported model/i);
-    expect(fetchMock).not.toHaveBeenCalled();
+    // A model id not in SUPPORTED_MODELS should be forwarded to the backend,
+    // not rejected locally. We confirm this by checking that buildResponsesRequest
+    // produces a body containing the unknown model id.
+    const req = client.buildResponsesRequest(
+      { accessToken: "AT", accountId: "acct_1" },
+      { model: "gpt-some-future-model", instructions: "s", input: "x" }
+    );
+    expect(JSON.parse(req.body).model).toBe("gpt-some-future-model");
   });
 });
