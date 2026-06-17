@@ -34,8 +34,9 @@ server's `instructions` nudge the agent to consult them before non-trivial exper
 | name | what it does |
 |------|--------------|
 | [`two-layer-cross-model-expert`](./patterns/two-layer-cross-model-expert.md) | Wrap the GPT expert in verifying Claude subagents so the orchestrator only ever sees parallel, context-cheap, ground-truth-checked conclusions. |
+| [`worker-orchestrator`](./patterns/worker-orchestrator.md) | Fan concrete work out to the GPT worker (`ask_gpt` with a fast model) through cheap Sonnet wrapper subagents — validated by execution, not a verification gate. |
 
-A rendered diagram lives at [`patterns/html/two-layer-cross-model-expert.html`](./patterns/html/two-layer-cross-model-expert.html). See [`patterns/README.md`](./patterns/README.md) to add your own.
+Both patterns ship a rendered diagram under [`patterns/html/`](./patterns/html). See [`patterns/README.md`](./patterns/README.md) to add your own.
 
 ---
 
